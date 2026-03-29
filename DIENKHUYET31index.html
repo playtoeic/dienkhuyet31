@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Điền Khuyết 31 - PLAYTOEIC</title>
+    <style>
+        :root {
+            --peach: #ffb7b2;
+            --dark-peach: #ff8b94;
+            --black: #1a1a1a;
+            --gray: #2d2d2d;
+            --white: #ffffff;
+            --bright-green: #00ff00; /* Xanh lá cây tươi */
+            --red: #ff6b6b;
+        }
+
+        body {
+            background-color: var(--black);
+            color: var(--white);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .master-audio-container {
+            background-color: var(--dark-peach);
+            padding: 5px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        #masterAudio {
+            width: 80%;
+            height: 30px;
+        }
+
+        .master-audio-container span {
+            color: var(--black);
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        header {
+            background-color: var(--black);
+            color: var(--peach);
+            padding: 1rem;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.5rem;
+            border-bottom: 2px solid var(--peach);
+        }
+
+        .main-layout {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .word-bank-column {
+            flex: 1;
+            background-color: var(--gray);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+            border: 2px solid var(--peach);
+        }
+
+        .word-group h3 {
+            color: var(--peach);
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255,183,178,0.3);
+            text-transform: uppercase;
+        }
+
+        .words-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .draggable-word {
+            background-color: var(--peach);
+            color: var(--black);
+            padding: 5px 10px;
+            border-radius: 12px;
+            cursor: grab;
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .draggable-word.used {
+            opacity: 0.2;
+            cursor: not-allowed;
+            filter: grayscale(1);
+        }
+
+        .content-column {
+            flex: 2.5;
+            overflow-y: auto;
+            padding-right: 15px;
+        }
+
+        .exercise-block {
+            background-color: var(--gray);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 8px solid var(--peach);
+        }
+
+        .dialogue-section { margin-bottom: 25px; }
+
+        .dialogue-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            color: var(--peach);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .play-btn {
+            background-color: var(--peach);
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .line { margin-bottom: 6px; line-height: 1.5; font-size: 0.95rem; }
+        .speaker { font-weight: bold; color: var(--peach); min-width: 45px; display: inline-block; }
+
+        .drop-zone {
+            display: inline-block;
+            min-width: 80px;
+            border-bottom: 2px dashed var(--peach);
+            text-align: center;
+            margin: 0 4px;
+            height: 20px;
+            vertical-align: bottom;
+            transition: color 0.3s;
+        }
+
+        .drop-zone.correct { 
+            color: var(--bright-green); /* Xanh lá tươi */
+            border-bottom: 2px solid var(--bright-green); 
+            font-weight: bold; 
+            text-shadow: none; /* Không viền sáng */
+        }
+
+        .drop-zone.wrong { border-bottom: 2px solid var(--red); animation: shake 0.3s; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--peach); border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="master-audio-container">
+    <span>AUDIO PLAYER:</span>
+    <audio id="masterAudio" controls src="https://res.cloudinary.com/do9hddivz/video/upload/v1774352519/dk31_kbzpwn.mp3"></audio>
+</div>
+
+<header>ĐIỀN KHUYẾT 31 - PLAYTOEIC</header>
+
+<div class="main-layout">
+    <aside class="word-bank-column" id="wordBank"></aside>
+    <main class="content-column" id="exerciseContent"></main>
+</div>
+
+<script>
+    const rawWordList = [
+  "calling", "purchase", "standard", "rentals", "exercise", "you're", // 1-6
+  "system", "Welcome", "you'll", "assurance", "previously", "similar", // 7-12
+  "manufacturing", "already", "equipment", "So-Jin", "resources", "employees", // 13-18
+  "newsletter", "redesign", "working", "you're", "There's", "payable", // 19-24
+  "Amanda", "you're", "before", "company", "training", "employees", // 25-30
+  "appreciate", "Milano", "advertising", "opened", "across", "Thanks", // 31-36
+  "Textiles", "process", "Simply", "watery", "sheets", "available", // 37-42
+  "Reducing", "leftover", "currently", "should", "eventually", "recycling", // 43-48
+  "confident", "reporters", "spokesperson", "speaks", "consulting", "available", // 49-54
+  "interview", "morning", "newest", "different", "options", "flower", // 55-60
+  "Thanks", "Bianca", "cookbook", "unusual", "What's", "university", // 61-66
+  "knowledge", "decided", "school", "recipes", "That's", "Ji-Soo", // 67-72
+  "attending", "opportunity", "professionals", "discussion", "That's", "Alberto", // 73-78
+  "downloaded", "Thursday", "summer", "increase", "mainly", "special", // 79-84
+  "should", "arcade", "maintenance", "parking", "arriving", "Azuma's", // 85-90
+  "display", "museum", "becoming", "discount", "called", "sturdy", // 91-96
+  "animals", "promotion", "twenty", "estimate", // 97-100
+];
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+const data = [
+  { title: "32 - 34", start: 5, end: 38, lines: [
+    { s: "M", t: "Hello. I'm (1)_______ because I'll be staying in the city next week for work, and 32I'd like to (2)_______ a temporary gym membership.", a: ["calling","purchase"] },
+    { s: "W", t: "Of course! Our (3)_______ day pass is twenty dollars. 33We also offer (4)_______ on athletic equipment like (5)_______ mats and tennis rackets if (6)_______ interested.", a: ["standard","rentals","exercise","you're"] },
+    { s: "M", t: "I'll just purchase the pass for now, thanks.", a: [] },
+    { s: "W", t: "Great. First, I'll need to set you up in our (7)_______ 34Can I have your name and e-mail address?", a: ["system"] }
+  ]},
+  { title: "35 - 37", start: 80, end: 126, lines: [
+    { s: "W", t: "(8)_______ to Reynold's Ice Cream Factory. I'm so glad that (9)_______ be joining our quality (10)_______ team.", a: ["Welcome","you'll","assurance"] },
+    { s: "M", t: "Thanks! I'm excited to work with the rest of the group.", a: [] },
+    { s: "W", t: "Great! I saw on your résumé that you (11)_______ did quality control at a (12)_______ factory.", a: ["previously","similar"] },
+    { s: "M", t: "Yes, 36 I learned a lot about food (13)_______ regulations there.", a: ["manufacturing"] },
+    { s: "W", t: "Then you'll (14)_______ be familiar with the testing we do. 37 We test at the beginning of each shift to make sure all the (15)_______ has been cleaned and sanitized.", a: ["already","equipment"] }
+  ]},
+  { title: "38 - 40", start: 154, end: 200, lines: [
+    { s: "M", t: "(16)_______ do you have a minute? I've got an assignment for you.", a: ["So-Jin"] },
+    { s: "W", t: "Sure. What is it?", a: [] },
+    { s: "M", t: "The human (17)_______ department is concerned that (18)_______ aren't reading their weekly staff (19)_______ 39 They asked if one of our graphic designers could (20)_______ the newsletter to make it more attractive.", a: ["resources","employees","newsletter","redesign"] },
+    { s: "W", t: "All right. I'll start (21)_______ on it after I've finished with the Web site update.", a: ["working"] },
+    { s: "M", t: "I'll ask Hiroki to take care of that so (22)_______ free to work on the newsletter.", a: ["you're"] }
+  ]},
+  { title: "41 - 43", start: 228, end: 260, lines: [
+    { s: "M1", t: "Did you hear that Ms. Hamdy is retiring? (23)_______ going to be an opening for an accounts (24)_______ manager. I think you'd be a perfect fit for the job, (25)_______", a: ["There's","payable","Amanda"] },
+    { s: "M2", t: "I agree. When anyone in accounting has a question, (26)_______ the one they go to.", a: ["you're"] },
+    { s: "W", t: "Thanks. 42 The only thing I worry about is that I've never managed a team (27)_______", a: ["before"] },
+    { s: "M2", t: "That's not a problem. The (28)_______ provides an intensive (29)_______ program for new managers. You learn how to motivate (30)_______ how to handle budgets—all that stuff.", a: ["company","training","employees"] },
+    { s: "W", t: "I (31)_______ your encouragement. 43 I'll talk to Ms. Hamdy to learn more about what she does.", a: ["appreciate"] }
+  ]},
+  { title: "44 - 46", start: 309, end: 345, lines: [
+    { s: "W", t: "Hi, Rodrigo. Would you like to join me and the team for lunch? We're going to Café (32)_______ 44 We've all been working hard to finish this (33)_______ campaign for our client.", a: ["Milano","advertising"] },
+    { s: "M", t: "Sure! 45 I can drive if you'd like.", a: [] },
+    { s: "W", t: "The café is just down the street.", a: [] },
+    { s: "M", t: "Oh, they must have (34)_______ a second location. I only know about the one (35)_______ town.", a: ["opened","across"] },
+    { s: "W", t: "Yes, this one just opened. 46 Would you like to see the menu? I have a copy in my office.", a: [] }
+  ]},
+  { title: "47 - 49", start: 382, end: 430, lines: [
+    { s: "M", t: "(36)_______ for agreeing to be interviewed for (37)_______ Quarterly about your company's recycling (38)_______ Our readers will be intrigued.", a: ["Thanks","Textiles","process"] },
+    { s: "W", t: "(39)_______ put, we shred discarded fabric, turn it into a (40)_______ mixture called slurry, and then dry it and press it into new (41)_______ of fabric. That fabric is then (42)_______ to create new products. 48 (43)_______ unnecessary waste is our goal.", a: ["Simply","watery","sheets","available","Reducing"] },
+    { s: "M", t: "It sounds like a great way to use (44)_______ materials.", a: ["leftover"] },
+    { s: "W", t: "Unfortunately, our facility is (45)_______ able to process only cotton waste. But in the next few years, we (46)_______ be able to recycle more types of textiles here. 49 It's my hope that it could (47)_______ become as common as (48)_______ aluminum is now.", a: ["currently","should","eventually","recycling"] }
+  ]},
+  { title: "50 - 52", start: 480, end: 520, lines: [
+    { s: "M", t: "Well, I think we've found the right person for the job. Sergey has a (49)_______ presence when speaking with (50)_______ and he knows the travel industry well. 50 He'll be a great (51)_______ for our airline.", a: ["confident","reporters","spokesperson"] },
+    { s: "W", t: "I liked the media clips he shared with us. He (52)_______ clearly and naturally. However, 51 he also does some (53)_______ as an extra source of income. Will he be (54)_______ whenever we need him?", a: ["speaks","consulting","available"] },
+    { s: "M", t: "You bring up a good point. 52 We should call him about that.", a: [] },
+    { s: "W", t: "Well, 52 we have his final (55)_______ scheduled for tomorrow. Let's wait until then.", a: ["interview"] }
+  ]},
+  { title: "53 - 55", start: 551, end: 600, lines: [
+    { s: "W", t: "Good (56)_______ Mr. Murray. 53I'm here to help you start planning the opening of your (57)_______ art gallery.", a: ["morning","newest"] },
+    { s: "M", t: "Great! As you know, this will be our third location. So 54I think I might like to try a (58)_______ kind of approach this time.", a: ["different"] },
+    { s: "W", t: "I understand. I have many (59)_______ for you to consider.", a: ["options"] },
+    { s: "M", t: "Glad to hear it.", a: [] },
+    { s: "W", t: "Let me grab the catering menu and the book of (60)_______ selections from my van. It's parked just outside.", a: ["flower"] }
+  ]},
+  { title: "56 - 58", start: 621, end: 697, lines: [
+    { s: "M", t: "(61)_______ for joining my podcast, (62)_______ I'm enjoying your unique (63)_______ 56 which takes traditional dishes from around the world and adds (64)_______ ingredients—which gives them a contemporary flair. (65)_______ your inspiration?", a: ["Thanks","Bianca","cookbook","unusual","What's"] },
+    { s: "W", t: "Well, 57 after finishing (66)_______ I was looking for a way to combine my (67)_______ of history that I learned there with cooking. So I (68)_______ to attend culinary (69)_______", a: ["university","knowledge","decided","school"] },
+    { s: "M", t: "I also noticed that you provide the (70)_______ in a variety of other languages. (71)_______ a nice touch that many readers will appreciate. Is it based on where the dish originated?", a: ["recipes","That's"] }
+  ]},
+  { title: "59 - 61", start: 707, end: 775, lines: [
+    { s: "W", t: "Hi, (72)_______ and Alberto. 59 Are you planning on (73)_______ the pharmaceutical conference next month? I think it'll be a great (74)_______ for us to learn from and network with other industry (75)_______", a: ["Ji-Soo","attending","opportunity","professionals"] },
+    { s: "M1", t: "Yes, we're going. In fact, 60 Alberto and I will be leading a roundtable (76)_______ on sustainable health care.", a: ["discussion"] },
+    { s: "W", t: "(77)_______ fantastic. When is it?", a: ["That's"] },
+    { s: "M1", t: "I can't remember the time. (78)_______ do you have the schedule?", a: ["Alberto"] },
+    { s: "M2", t: "Yes, I actually just (79)_______ the conference's app. It should be listed there. Let's see. It looks like it's on (80)_______ at four.", a: ["downloaded","Thursday"] },
+    { s: "W", t: "Great! 61 I'll download the app now and sign up.", a: [] }
+  ]},
+  { title: "62 - 64", start: 789, end: 847, lines: [
+    { s: "W", t: "Our water park will be reopening for the (81)_______ season soon, and 62 we're looking for ways to (82)_______ park attendance. This has been an ongoing problem.", a: ["summer","increase"] },
+    { s: "M", t: "I agree. It's (83)_______ weekdays that have poor attendance. So I've come up with a plan with (84)_______ offers on those days. What do you think?", a: ["mainly","special"] },
+    { s: "W", t: "It's good. I like the free parking. In fact, I think we (85)_______ offer it on another day too. 63 How about we replace the free (86)_______ tickets with another day of free parking?", a: ["should","arcade"] },
+    { s: "M", t: "Sure. 64 But first I'm going to talk to the (87)_______ staff and make sure the repairs to the overflow (88)_______ area are done before customers start (89)_______", a: ["maintenance","parking","arriving"] }
+  ]},
+  { title: "65 - 67", start: 882, end: 933, lines: [
+    { s: "W", t: "I can't find this shirt in my size. Do you have any more in a size small?", a: [] },
+    { s: "M", t: "The exhibit of Narumi (90)_______ drawings is very popular. The gift shop has sold out of a lot of the merchandise. 66 Do you want me to see if the (91)_______ shirt is a small?", a: ["Azuma's","display"] },
+    { s: "W", t: "Sure. That print is one of my favorites.", a: [] },
+    { s: "M", t: "You're in luck. 66 It's a small. I'll ring it up for you. 67 Are you a (92)_______ member?", a: ["museum"] },
+    { s: "W", t: "No, I'm not.", a: [] },
+    { s: "M", t: "You might consider (93)_______ one. Members get a ten percent (94)_______ at the gift shop.", a: ["becoming","discount"] }
+  ]},
+  { title: "68 - 70", start: 964, end: 1025, lines: [
+    { s: "W", t: "Hi. I'm interested in installing a new fence on my property.", a: [] },
+    { s: "M", t: "You (95)_______ the right place. What type of fence are you looking for?", a: ["called"] },
+    { s: "W", t: "Something (96)_______ to put around the garden to keep (97)_______ from eating the vegetables.", a: ["sturdy","animals"] },
+    { s: "M", t: "OK. A mesh fence might work well for you. In fact, right now, we have a (98)_______ on fences. 69 If you pay half the cost in advance, you'll get (99)_______ percent off the price.", a: ["promotion","twenty"] },
+    { s: "W", t: "Sounds great. Can you give me a cost (100)_______", a: ["estimate"] }
+  ]}
+];
+
+    function init() {
+        const bank = document.getElementById('wordBank');
+        const content = document.getElementById('exerciseContent');
+        const masterAudio = document.getElementById('masterAudio');
+
+        for(let i=0; i<rawWordList.length; i+=30) {
+            const group = document.createElement('div');
+            group.className = 'word-group';
+            group.innerHTML = `<h3>NHÓM ${Math.floor(i/30)+1}</h3><div class="words-container"></div>`;
+            const container = group.querySelector('.words-container');
+            
+            let subList = rawWordList.slice(i, i+30);
+            shuffleArray(subList);
+
+            subList.forEach(w => {
+                const el = document.createElement('div');
+                el.className = 'draggable-word';
+                el.draggable = true;
+                el.innerText = w;
+                el.id = `word-${Math.random().toString(36).substr(2, 9)}`;
+                el.ondragstart = (e) => e.dataTransfer.setData("text", `${w}|${el.id}`);
+                container.appendChild(el);
+            });
+            bank.appendChild(group);
+        }
+
+        data.forEach(part => {
+            const block = document.createElement('div');
+            block.className = 'exercise-block';
+            let linesHtml = part.lines.map(line => {
+                let currentAnswers = Array.isArray(line.a) ? [...line.a] : [line.a];
+                let text = line.t.replace(/_______/g, () => {
+                    const ans = currentAnswers.shift();
+                    return `<span class="drop-zone" data-answer="${ans}"></span>`;
+                });
+                return `<div class="line"><span class="speaker">${line.s}:</span> ${text}</div>`;
+            }).join('');
+
+            block.innerHTML = `
+                <div class="dialogue-header">
+                    <button class="play-btn" data-start="${part.start}" data-end="${part.end}">▶</button>
+                    <span class="section-title">Đoạn ${part.title}</span>
+                </div>
+                ${linesHtml}
+            `;
+            content.appendChild(block);
+        });
+
+        document.querySelectorAll('.drop-zone').forEach(zone => {
+            zone.ondragover = (e) => e.preventDefault();
+            zone.ondrop = (e) => {
+                const [word, elId] = e.dataTransfer.getData("text").split("|");
+                if (word === zone.dataset.answer) {
+                    zone.innerText = word;
+                    zone.className = 'drop-zone correct';
+                    document.getElementById(elId).classList.add('used');
+                } else {
+                    zone.classList.add('wrong');
+                    setTimeout(() => zone.classList.remove('wrong'), 500);
+                }
+            };
+        });
+
+        document.querySelectorAll('.play-btn').forEach(btn => {
+btn.onclick = () => {
+    const start = parseFloat(btn.dataset.start);
+    const end = parseFloat(btn.dataset.end);
+
+    const playSegment = () => {
+        masterAudio.currentTime = start;
+        masterAudio.play();
+
+        const checkTime = () => {
+            if (masterAudio.currentTime >= end) {
+                masterAudio.pause();
+                masterAudio.removeEventListener('timeupdate', checkTime);
+            }
+        };
+        masterAudio.addEventListener('timeupdate', checkTime);
+    };
+
+    if (masterAudio.readyState >= 1) {
+        playSegment();
+    } else {
+        masterAudio.addEventListener('loadedmetadata', playSegment, { once: true });
+    }
+};
+        });
+    }
+
+    window.onload = init;
+</script>
+</body>
+</html>
